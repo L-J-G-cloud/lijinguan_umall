@@ -1,21 +1,7 @@
-# demo
+#### 项目完成基本的所有功能
 
-> A Vue.js project
+#### 未完成的优化：
 
-## Build Setup
+#####   1.价格保留两位小数
 
-``` bash
-# install dependencies
-npm install
-
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-```
-
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+#####   2.项目后台的token验证没有开启
