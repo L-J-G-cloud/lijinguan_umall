@@ -13,15 +13,20 @@
       <el-table-column prop="goodsname" label="商品名称" sortable width="180">
       </el-table-column>
 
-      <el-table-column prop="price" label="商品价格" sortable width="180">
+      <el-table-column  label="商品价格" sortable width="180">
+        <template slot-scope="scope">
+              <span>{{scope.row.price|filterPrice}}</span>
+        </template>
       </el-table-column>
 
       <el-table-column
-        prop="market_price"
         label="市场价格"
         sortable
         width="180"
       >
+      <template slot-scope="scope">
+              <span>{{scope.row.market_price|filterPrice}}</span>
+        </template>
       </el-table-column>
 
       <el-table-column prop="rolename" label="图片" sortable width="180">

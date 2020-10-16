@@ -39,12 +39,15 @@
           <el-input v-model="form.goodsname"></el-input>
         </el-form-item>
         
-        <el-form-item label="市场价格">
-          <el-input v-model="form.price"></el-input>
+        <el-form-item label="商品价格">
+          <!-- <template slot-scope="scope">
+              <span>{{scope.row.price|filterPrice}}</span>
+          </template> -->
+          <el-input v-model="form.price" @blur="form.price=Number(form.price).toFixed(2)"></el-input>
         </el-form-item>
 
          <el-form-item label="市场价格">
-          <el-input v-model="form.market_price"></el-input>
+          <el-input v-model="form.market_price" @blur="form.market_price=Number(form.market_price).toFixed(2)" ></el-input>
          </el-form-item>
 
 

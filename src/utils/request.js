@@ -1,7 +1,9 @@
 import Vue from "vue"
 import axios from "axios"
 import qs from "qs"
-
+import store from "../store"
+import {warningAlert} from "./alert"
+import router from "../router"
 //开发环境下使用
 Vue.prototype.$imgPre = "http://localhost:3000"
 let baseUrl = "/api";
@@ -10,11 +12,25 @@ let baseUrl = "/api";
 // 打包
 // Vue.prototype.$imgPre=""
 // let baseUrl = "";
+// 请求拦截
+axios.interceptors.request.use(req=>{
+    if(req.url!=baseUrl+"/login"){
+        req.headers.authorization = store.state.userInfo.token;
+    }
+    return req;
+})
 //响应拦截
 axios.interceptors.response.use(res => {
     console.group("=====本次请求的路径是:" + res.config.url);
     console.log(res);
     console.groupEnd();
+
+     //用户掉线了
+     if(res.data.msg=='登录已过期或访问权限受限'){
+        warningAlert(res.data.msg)
+        router.push("/login")
+    }
+
     return res
 })
 /*******登录*************************************************/
