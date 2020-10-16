@@ -6,8 +6,8 @@
       @closed="close"
       @opened="opened"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="一级分类">
+      <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+        <el-form-item label="一级分类" prop="first_cateid">
           <el-select
             v-model="form.first_cateid"
             placeholder="请选择"
@@ -23,7 +23,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="二级分类">
+        <el-form-item label="二级分类" prop="second_cateid">
           <el-select v-model="form.second_cateid" placeholder="请选择">
             <el-option label="请选择" value="shanghai" disabled></el-option>
             <el-option
@@ -35,23 +35,28 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="商品名称">
+        <el-form-item label="商品名称" prop="goodsname">
           <el-input v-model="form.goodsname"></el-input>
         </el-form-item>
-        
-        <el-form-item label="商品价格">
+
+        <el-form-item label="商品价格" prop="price">
           <!-- <template slot-scope="scope">
               <span>{{scope.row.price|filterPrice}}</span>
           </template> -->
-          <el-input v-model="form.price" @blur="form.price=Number(form.price).toFixed(2)"></el-input>
+          <el-input
+            v-model="form.price"
+            @blur="form.price = Number(form.price).toFixed(2)"
+          ></el-input>
         </el-form-item>
 
-         <el-form-item label="市场价格">
-          <el-input v-model="form.market_price" @blur="form.market_price=Number(form.market_price).toFixed(2)" ></el-input>
-         </el-form-item>
+        <el-form-item label="市场价格" prop="market_price">
+          <el-input
+            v-model="form.market_price"
+            @blur="form.market_price = Number(form.market_price).toFixed(2)"
+          ></el-input>
+        </el-form-item>
 
-
-        <el-form-item label="图片">    
+        <el-form-item label="图片" prop="img">
           <div class="my-upload">
             <h2>+</h2>
             <img class="img" :src="imgUrl" alt="" v-if="imgUrl" />
@@ -64,7 +69,7 @@
           </div>
         </el-form-item>
 
-        <el-form-item label="商品规格">
+        <el-form-item label="商品规格" prop="specsid">
           <el-select
             v-model="form.specsid"
             placeholder="请选择"
@@ -80,7 +85,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="商品属性">
+        <el-form-item label="商品属性" prop="specsattr">
           <el-select v-model="form.specsattr" placeholder="请选择" multiple>
             <el-option label="请选择" disabled value=""></el-option>
             <el-option
@@ -110,16 +115,18 @@
           ></el-switch>
         </el-form-item>
 
-        <el-form-item label="商品描述">
+        <el-form-item label="商品描述" required>
           <div v-if="info.isshow" id="editor"></div>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd"
           >添 加</el-button
         >
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else
+          >修 改</el-button
+        >
       </div>
     </el-dialog>
   </div>
@@ -134,6 +141,7 @@ import {
   reqGoodsEdit,
   reqCateList,
 } from "../../../utils/request";
+import { validateNecessary } from "../../../utils/validate";
 export default {
   props: ["info"],
   components: {},
@@ -159,6 +167,16 @@ export default {
       imgUrl: "",
       //   商品属性
       goodsAttrList: [],
+      rules: {
+        first_cateid: [validateNecessary("请选择")],
+        second_cateid: [validateNecessary("请选择")],
+        price: [validateNecessary("请输入")],
+        market_price: [validateNecessary("请输入")],
+        goodsname: [validateNecessary("请输入")],
+        img: [validateNecessary("请选择图片")],
+        specsid: [validateNecessary("请选择")],
+        specsattr: [validateNecessary("请选择")],
+      },
     };
   },
   computed: {
@@ -257,21 +275,28 @@ export default {
         this.empty();
       }
     },
-    add() {
-      this.form.description = this.editor.txt.html();
-      let data = {
-        ...this.form,
-        specsattr: JSON.stringify(this.form.specsattr),
-      };
-      reqGoodsAdd(data).then((res) => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqListAction();
-          this.reqTotalAction();
-        } else {
-          warningAlert(res.data.msg);
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          if(this.editor.txt.html()==''){
+            warningAlert('请填写描述');return;
+          }
+          this.form.description = this.editor.txt.html();
+          let data = {
+            ...this.form,
+            specsattr: JSON.stringify(this.form.specsattr),
+          };
+          reqGoodsAdd(data).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqListAction();
+              this.reqTotalAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         }
       });
     },
@@ -279,15 +304,15 @@ export default {
       reqGoodsInfo(id).then((res) => {
         if (res.data.code == 200) {
           this.form = res.data.list;
-          this.form.id=id;
+          this.form.id = id;
           //需要请求一下二级分类的list
           this.getSecondList();
-           //图片
+          //图片
           this.imgUrl = this.$imgPre + this.form.img;
 
-            //商品属性从字符串转为 []
+          //商品属性从字符串转为 []
           this.form.specsattr = JSON.parse(this.form.specsattr);
-            //获取商品属性的数组
+          //获取商品属性的数组
           this.getAttrsArr();
         } else {
           warningAlert(res.data.msg);

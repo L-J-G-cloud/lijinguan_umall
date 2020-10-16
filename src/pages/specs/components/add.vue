@@ -5,8 +5,8 @@
       :visible.sync="info.isshow"
       @closed="close"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="规格名称">
+      <el-form ref="form" :model="form" label-width="80px" >
+        <el-form-item label="规格名称" required>
           <el-input v-model="form.specsname"></el-input>
         </el-form-item>
 
@@ -14,10 +14,11 @@
           label="规格属性"
           v-for="(item, index) in attrArr"
           :key="index"
-          :span="21"
+          :span="21" 
+          required
         >
-          <el-row>
-            <el-col :span="17">
+          <el-row >
+            <el-col :span="17" >
               <el-input v-model="item.value"></el-input>
             </el-col>
             <el-col :span="4">
@@ -42,7 +43,7 @@
 
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add()" v-if="info.isAdd"
           >添 加</el-button
         >
         <el-button type="primary" @click="update" v-else>修 改</el-button>
@@ -58,6 +59,7 @@ import {
   reqSpecsInfo,
   reqSpecsEdit,
 } from "../../../utils/request";
+import{validateNecessary} from "../../../utils/validate"
 export default {
   props: ["info"],
   components: {},
@@ -117,6 +119,11 @@ export default {
     },
     add() {
       this.form.attrs = JSON.stringify(this.attrArr.map((item) => item.value));
+
+       if(this.form.specsname==''||!this.attrArr.every(item=>item.value)){
+          warningAlert("请填写完成内容");
+          return;
+       }
       reqSpecsAdd(this.form).then((res) => {
         if (res.data.code == 200) {
           successAlert(res.data.msg);
@@ -144,6 +151,10 @@ export default {
     },
     update() {
       this.form.attrs = JSON.stringify(this.attrArr.map((item) => item.value));
+       if(this.form.specsname==''||!this.attrArr.every(item=>item.value)){
+          warningAlert("请填写完成内容");
+          return;
+       }
       reqSpecsEdit(this.form).then((res) => {
         if (res.data.code == 200) {
           successAlert(res.data.msg);

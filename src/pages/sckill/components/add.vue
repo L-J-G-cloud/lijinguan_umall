@@ -5,12 +5,12 @@
       :visible.sync="info.isshow"
       @closed="close"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="活动名称">
+      <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+        <el-form-item label="活动名称" prop="title">
           <el-input v-model="form.title"></el-input>
         </el-form-item>
 
-        <el-form-item label="活动期限">
+        <el-form-item label="活动期限" required>
           <el-date-picker
             v-model="value"
             type="datetimerange"
@@ -20,7 +20,7 @@
           >
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="一级分类">
+        <el-form-item label="一级分类" prop="first_cateid">
           <el-select
             v-model="form.first_cateid"
             placeholder="请选择"
@@ -37,7 +37,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="二级分类">
+        <el-form-item label="二级分类" prop="second_cateid">
           <el-select v-model="form.second_cateid" @change="getThreeList()">
             <el-option label="请选择" value="" disabled> </el-option>
             <el-option
@@ -50,7 +50,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="商品">
+        <el-form-item label="商品" prop="goodsid">
           <el-select v-model="form.goodsid" placeholder="请选择">
             <el-option
               v-for="item in ThreeCateList"
@@ -72,10 +72,12 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd"
           >添 加</el-button
         >
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else
+          >修 改</el-button
+        >
       </div>
     </el-dialog>
   </div>
@@ -90,6 +92,7 @@ import {
 } from "../../../utils/request";
 import { warningAlert, successAlert } from "../../../utils/alert";
 import { reqCateList, reqGoodsList } from "../../../utils/request";
+import { validateNecessary } from "../../../utils/validate";
 export default {
   props: ["info"],
   components: {},
@@ -107,6 +110,12 @@ export default {
       },
       secondCateList: [],
       ThreeCateList: [],
+      rules: {
+        title: [validateNecessary("请输入活动名称")],
+        first_cateid: [validateNecessary("请选择")],
+        second_cateid: [validateNecessary("请选择")],
+        goodsid: [validateNecessary("请选择")],
+      },
     };
   },
   computed: {
@@ -188,33 +197,45 @@ export default {
       };
       this.value = [];
     },
-    Time(){
-        this.form.begintime = new Date(this.value[0]).getTime(this.value[0]);
+    Time() {
+      this.form.begintime = new Date(this.value[0]).getTime(this.value[0]);
       this.form.endtime = new Date(this.value[1]).getTime(this.value[1]);
     },
-    add() {
-         this.Time();
-      reqSkillAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqListAction();
-        } else {
-          warningAlert(res.data.msg);
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          this.Time();
+          if(!this.form.begintime||!this.form.endtime){
+            warningAlert("请选择活动期限");
+            return;
+          }
+          reqSkillAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         }
       });
     },
-    update() {
-       this.Time();
-      reqSkillEdit(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqListAction();
-        } else {
-          warningAlert(res.data.msg);
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          this.Time();
+          reqSkillEdit(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
         }
       });
     },

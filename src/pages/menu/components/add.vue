@@ -1,11 +1,12 @@
 <template>
   <div>
-    <el-dialog 
-    :title="info.isAdd ? '添加菜单' : '编辑菜单'"
-    :visible.sync="info.isshow" 
-     @closed="close">
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="菜单名称">
+    <el-dialog
+      :title="info.isAdd ? '添加菜单' : '编辑菜单'"
+      :visible.sync="info.isshow"
+      @closed="close"
+    >
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="菜单名称" prop="title">
           <el-input v-model="form.title"></el-input>
         </el-form-item>
         <el-form-item label="上级菜单">
@@ -28,14 +29,14 @@
           <el-radio v-model="form.type" :label="1" disabled>目录</el-radio>
           <el-radio v-model="form.type" :label="2" disabled>菜单</el-radio>
         </el-form-item>
-        <el-form-item label="菜单图标" v-if="form.type == 1">
+        <el-form-item label="菜单图标" v-if="form.type == 1" prop="icon">
           <el-select v-model="form.icon" placeholder="请选择上级菜单">
             <el-option v-for="item in icons" :key="item" :value="item">
               <i :class="item"></i>
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="菜单地址" v-else>
+        <el-form-item label="菜单地址" v-else prop="url">
           <el-select v-model="form.url" placeholder="请选择上级菜单">
             <el-option
               v-for="item in indexRoutes"
@@ -57,10 +58,10 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd"
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd"
           >添 加</el-button
         >
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
@@ -68,8 +69,9 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 import { indexRoutes } from "../../../router/index";
-import { reqMenuAdd ,reqMenuInfo,reqMenuEdit} from "../../../utils/request";
+import { reqMenuAdd, reqMenuInfo, reqMenuEdit } from "../../../utils/request";
 import { warningAlert, successAlert } from "../../../utils/alert";
+import{validateNecessary} from "../../../utils/validate"
 export default {
   props: ["info"],
   components: {},
@@ -91,6 +93,11 @@ export default {
         url: "",
         status: 1,
       },
+      rules: {
+        title: [validateNecessary("请输入菜单名称")],
+        icon: [validateNecessary("请选择图标")],
+        url: [validateNecessary("请选择菜单地址")],
+      },
     };
   },
   computed: {
@@ -102,25 +109,25 @@ export default {
     ...mapActions({
       reqListAction: "menu/reqListAction",
     }),
-     //取消
+    //取消
     cancel() {
       this.info.isshow = false;
     },
-    close(){
+    close() {
       //如果是添加开的弹框，就什么都不做；如果是编辑开的弹框，就清除form
-      if(!this.info.isAdd){
-        this.empty()
+      if (!this.info.isAdd) {
+        this.empty();
       }
     },
-    look(id){
-        reqMenuInfo(id).then(res=>{
-           if(res.data.code==200){
-             this.form=res.data.list;
-             this.form.id=id;
-           }else{
-             warningAlert(res.data.msg)
-           }
-        })
+    look(id) {
+      reqMenuInfo(id).then((res) => {
+        if (res.data.code == 200) {
+          this.form = res.data.list;
+          this.form.id = id;
+        } else {
+          warningAlert(res.data.msg);
+        }
+      });
     },
     //修改了pid
     changePid() {
@@ -130,7 +137,7 @@ export default {
         this.form.type = 2;
       }
     },
-     //数据重置
+    //数据重置
     empty() {
       this.form = {
         pid: 0,
@@ -141,30 +148,38 @@ export default {
         status: 1,
       };
     },
-    add(){
-        reqMenuAdd(this.form).then(res=>{
-           if(res.data.code==200){
-                successAlert(res.data.msg);
-                this.empty();
-                this.cancel();
-                this.reqListAction();
-           }else{
-             warningAlert(res.data.msg);
-           }
-        })
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqMenuAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
+        }
+      });
     },
-    update(){
-        reqMenuEdit(this.form).then(res=>{
-          if(res.data.code==200){
-            successAlert(res.data.msg);
-            this.empty();
-            this.cancel();
-            this.reqListAction();
-          }else{
-            warningAlert(res.data.msg)
-          }
-        })
-    }
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqMenuEdit(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlert(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          });
+        }
+      });
+    },
   },
   mounted() {},
 };
