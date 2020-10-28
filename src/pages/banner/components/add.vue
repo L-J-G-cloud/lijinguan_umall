@@ -10,6 +10,7 @@
           <el-input v-model="form.title"></el-input>
         </el-form-item>
 
+        <!-- 上传一张图片原生写法 -->
         <el-form-item label="图片" prop="img">
           <div class="my-upload">
             <h2>+</h2>
@@ -22,6 +23,45 @@
             />
           </div>
         </el-form-item>
+
+        <!-- 上传多张el框架 -->
+        <!-- <el-form-item label="图片">
+          <el-upload action="#" list-type="picture-card" :auto-upload="false">
+            <i slot="default" class="el-icon-plus"></i>
+            <div slot="file" slot-scope="{ file }">
+              <img
+                class="el-upload-list__item-thumbnail"
+                :src="file.url"
+                alt=""
+              />
+              <span class="el-upload-list__item-actions">
+                <span
+                  class="el-upload-list__item-preview"
+                  @click="handlePictureCardPreview(file)"
+                >
+                  <i class="el-icon-zoom-in"></i>
+                </span>
+                <span
+                  v-if="!disabled"
+                  class="el-upload-list__item-delete"
+                  @click="handleDownload(file)"
+                >
+                  <i class="el-icon-download"></i>
+                </span>
+                <span
+                  v-if="!disabled"
+                  class="el-upload-list__item-delete"
+                  @click="handleRemove(file)"
+                >
+                  <i class="el-icon-delete"></i>
+                </span>
+              </span>
+            </div>
+          </el-upload>
+          <el-dialog :visible.sync="dialogVisible">
+            <img width="100%" :src="dialogImageUrl" alt="" />
+          </el-dialog>
+        </el-form-item> -->
 
         <el-form-item label="状态">
           <el-switch
@@ -68,6 +108,9 @@ export default {
         title: [validateNecessary("请输入名称")],
         img: [validateNecessary("请选择图片")],
       },
+      dialogImageUrl: "",
+      dialogVisible: false,
+      disabled: false,
     };
   },
   computed: {
@@ -76,6 +119,16 @@ export default {
     }),
   },
   methods: {
+    handleRemove(file) {
+      console.log(file);
+    },
+    handlePictureCardPreview(file) {
+      this.dialogImageUrl = file.url;
+      this.dialogVisible = true;
+    },
+    handleDownload(file) {
+      console.log(file);
+    },
     ...mapActions({
       reqListAction: "banner/reqListAction",
     }),
